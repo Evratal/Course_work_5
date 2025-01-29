@@ -9,6 +9,12 @@ def user_interaction(hh_api):
     #Флаг, для контроля заполнения таблицы (делает обязательным пункт 1)
     flag = False
 
+    # Создаём класс для работы с таблицей и создаём таблицы
+    new_tables = DBcreate()
+    new_tables.create_table_employers()
+    new_tables.create_table_vacancies()
+
+
     while True:
         print("\nДоступные команды:")
         print("1. Подбор 10 работодателей с соответствующими вакансиями по запросу")
@@ -24,35 +30,32 @@ def user_interaction(hh_api):
         # Создаём класс для работы с таблицей
         manager = DBManager()
 
-
         if choice == '1':
             # Получаем список работодателей, выбираем 10 случайных компаний, создаём таблицу компаний,
             # после чего получаем вакансии от каждой компании и создаём соответствующую таблицу.
 
-            keyword = input("Введите поисковый запрос: ")
-            employers = hh_api.load_employers(keyword)
-
+            employers = hh_api.top_load_employers("")
 
             if employers is not None and len(employers) > 10:
-                print(f"Найдены работодатели по запросу '{keyword}':")
-                #Создаем список из 10 случайных компаний
-                new_list_employers = sample(employers,10)
+                print("Найдены работодатели")
+                # Создаем список из 10 случайных компаний
+                new_list_employers = sample(employers, 10)
 
-                #Перевод флаг в значение True
+                # Перевод флаг в значение True
                 flag = True
 
-                #Создаём таблицу компаний и вакансий
+                # Создаём таблицу компаний и вакансий
                 new_tables = DBcreate()
                 new_tables.create_table_employers()
                 new_tables.create_table_vacancies()
 
-                #Получаем вакансии от каждой компании и заполняем соответствующие таблицы
+                # Получаем вакансии от каждой компании и заполняем соответствующие таблицы
                 hh_vacancies = HH()
                 hh_vacancies.connect()
 
                 for employer in new_list_employers:
                     new_tables.add_new_employer(employer)
-                    new_vacancies = hh_vacancies.load_vacancies("",employer['id'])
+                    new_vacancies = hh_vacancies.load_vacancies("", employer['id'], 5)
                     for vacancy in new_vacancies:
                         new_tables.add_new_vacancy(vacancy)
 
